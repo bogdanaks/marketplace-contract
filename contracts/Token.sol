@@ -1,7 +1,7 @@
 //SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.11;
 
-contract ERC20 {
+contract Token {
     string public name = "Crypton";
     string public symbol = "CRYP";
     uint8 public decimals = 18;
