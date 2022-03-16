@@ -1,19 +1,22 @@
-import { expect } from "chai";
 import { ethers } from "hardhat";
+import errorsTest from "./errorsTest";
+import oneItemTest from "./oneItem";
 
-describe("Greeter", function () {
-  it("Should return the new greeting once it's changed", async function () {
-    const Greeter = await ethers.getContractFactory("Greeter");
-    const greeter = await Greeter.deploy("Hello, world!");
-    await greeter.deployed();
+describe("Test functions", async function () {
+  beforeEach(async function () {
+    this.NFTContract = await ethers.getContractFactory("NFT");
+    this.TokenContract = await ethers.getContractFactory("Token");
+    this.MarketPlaceContract = await ethers.getContractFactory("MarketPlace");
+    [this.owner, this.addr1] = await ethers.getSigners();
 
-    expect(await greeter.greet()).to.equal("Hello, world!");
-
-    const setGreetingTx = await greeter.setGreeting("Hola, mundo!");
-
-    // wait until the transaction is mined
-    await setGreetingTx.wait();
-
-    expect(await greeter.greet()).to.equal("Hola, mundo!");
+    this.nft = await this.NFTContract.deploy();
+    this.token = await this.TokenContract.deploy();
+    this.marketPlace = await this.MarketPlaceContract.deploy(
+      this.nft.address,
+      this.token.address
+    );
   });
+
+  errorsTest();
+  oneItemTest();
 });
