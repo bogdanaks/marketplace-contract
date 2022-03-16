@@ -35,13 +35,21 @@ contract MarketPlace is Ownable {
     mapping(uint256 => Order) public orders;
     mapping(uint256 => Bid[]) public bids;
 
+    address nftAddress;
+    address tokenAddress;
+
+    constructor(address _nftAddress, address _tokenAddress) public {
+        nftAddress = _nftAddress;
+        tokenAddress = _tokenAddress;
+    }
+
     modifier onlyOrderByType(uint256 _tokenId, OrderType _orderType) {
         require(orders[_tokenId].orderType == _orderType, "Invalid order type");
         _;
     }
 
     function createItem(string memory _tokenURI, address _owner) public {
-        NFT.createNFT(_owner, _tokenURI);
+        NFT(nftAddress).createNFT(_owner, _tokenURI);
         // TODO add event
     }
 
@@ -51,17 +59,17 @@ contract MarketPlace is Ownable {
 
 
         orders[_tokenId] = Order(OrderType.FIX_PRICE, OrderStatus.PENDING, _price, msg.sender, block.timestamp);
-        NFT.transferNFT(msg.sender, address(this), _tokenId);
+        NFT(nftAddress).transferNFT(msg.sender, address(this), _tokenId);
         // TODO add event
     }
 
-    function buyItem(uint256 _tokenId) public onlyOrderByType(_tokenId, OrderType.FIX_PRICE) {
+    function buyItem(uint256 _tokenId) public payable onlyOrderByType(_tokenId, OrderType.FIX_PRICE) {
         require(orders[_tokenId].createdAt == 0, "Not exist");
         require(msg.value >= orders[_tokenId].price, "Must be greater than price");
 
         orders[_tokenId].status = OrderStatus.FINISHED;
-        Token.transferFrom(msg.sender, address(this), orders[_tokenId].price);
-        NFT.transferNFT(address(this), msg.sender, _tokenId);
+        Token(tokenAddress).transferFrom(msg.sender, address(this), orders[_tokenId].price);
+        NFT(nftAddress).transferNFT(address(this), msg.sender, _tokenId);
         // TODO add event
     }
 
@@ -71,7 +79,7 @@ contract MarketPlace is Ownable {
         require(orders[_tokenId].status == OrderStatus.PENDING, "Bids already placed or order finished");
 
         orders[_tokenId].status = OrderStatus.FINISHED;
-        NFT.transferNFT(address(this), msg.sender, _tokenId);
+        NFT(nftAddress).transferNFT(address(this), msg.sender, _tokenId);
         // TODO add event
     }
 
@@ -79,7 +87,7 @@ contract MarketPlace is Ownable {
         require(orders[_tokenId].createdAt > 0, "Already exist");
 
         orders[_tokenId] = Order(OrderType.AUCTION, OrderStatus.PENDING, _minPrice, msg.sender, block.timestamp);
-        NFT.transferNFT(msg.sender, address(this), _tokenId);
+        NFT(nftAddress).transferNFT(msg.sender, address(this), _tokenId);
         // TODO add event
     }
 
@@ -88,8 +96,8 @@ contract MarketPlace is Ownable {
         require(lastBid.amount < _price, "Bid amount must be greater than last bid");
 
         bids[_tokenId].push(Bid(_price, msg.sender, block.timestamp));
-        Token.transferFrom(address(this), lastBid.bidder, lastBid.amount);
-        Token.transferFrom(msg.sender, address(this), _price);
+        Token(tokenAddress).transferFrom(address(this), lastBid.bidder, lastBid.amount);
+        Token(tokenAddress).transferFrom(msg.sender, address(this), _price);
         // TODO add event
     }
 
@@ -103,11 +111,11 @@ contract MarketPlace is Ownable {
         orders[_tokenId].status = OrderStatus.FINISHED;
 
         if (bids[_tokenId].length > 2) {
-            NFT.transferNFT(address(this), lastBid.bidder, _tokenId);
-            Token.transferFrom(address(this), orders[_tokenId].owner, lastBid.amount);
+            NFT(nftAddress).transferNFT(address(this), lastBid.bidder, _tokenId);
+            Token(tokenAddress).transferFrom(address(this), orders[_tokenId].owner, lastBid.amount);
         } else {
-            NFT.transferNFT(address(this), orders[_tokenId].owner, _tokenId);
-            Token.transferFrom(address(this), lastBid.bidder, lastBid.amount);
+            NFT(nftAddress).transferNFT(address(this), orders[_tokenId].owner, _tokenId);
+            Token(tokenAddress).transferFrom(address(this), lastBid.bidder, lastBid.amount);
         }
         // TODO add event
     }
