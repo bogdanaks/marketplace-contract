@@ -7,6 +7,6 @@
     "outDir": "dist",
     "declaration": true
   },
-  "include": ["./scripts", "./test", "./typechain", "contextMocha.d.ts"],
+  "include": ["./scripts", "./test", "./typechain", "./types/contextMocha.d.ts"],
   "files": ["./hardhat.config.ts"],
 }
