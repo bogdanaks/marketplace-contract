@@ -1,6 +1,8 @@
+import { parseEther } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import errorsTest from "./errorsTest";
 import oneItemTest from "./oneItem";
+import actionTest from "./auction";
 
 describe("Test functions", async function () {
   beforeEach(async function () {
@@ -15,8 +17,10 @@ describe("Test functions", async function () {
       this.nft.address,
       this.token.address
     );
+    await this.token.approve(this.marketPlace.address, parseEther("100"));
   });
 
   errorsTest();
   oneItemTest();
+  actionTest();
 });
