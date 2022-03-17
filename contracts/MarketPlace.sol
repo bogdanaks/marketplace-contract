@@ -50,7 +50,7 @@ contract MarketPlace is Ownable {
 
     function createItem(string memory _tokenURI, address _owner) public returns (uint256 nftId) {
         return NFT(nftAddress).createNFT(_owner, _tokenURI);
-        // TODO add event
+        emit CreateItem(_tokenURI, _owner);
     }
 
     function listItem(uint256 _tokenId, uint256 _price) public {
@@ -59,7 +59,7 @@ contract MarketPlace is Ownable {
 
         orders[_tokenId] = Order(OrderType.FIX_PRICE, OrderStatus.PENDING, _price, msg.sender, block.timestamp);
         NFT(nftAddress).transferNFT(msg.sender, address(this), _tokenId);
-        // TODO add event
+        emit ListItem(_tokenId, _price);
     }
 
     function buyItem(uint256 _tokenId) public payable onlyOrderByType(_tokenId, OrderType.FIX_PRICE) {
@@ -69,7 +69,7 @@ contract MarketPlace is Ownable {
         orders[_tokenId].status = OrderStatus.FINISHED;
         Token(tokenAddress).transferFrom(msg.sender, address(this), orders[_tokenId].price);
         NFT(nftAddress).transferNFT(address(this), msg.sender, _tokenId);
-        // TODO add event
+        emit BuyItem(_tokenId);
     }
 
     function cancel(uint256 _tokenId) public onlyOrderByType(_tokenId, OrderType.FIX_PRICE) {
@@ -79,7 +79,7 @@ contract MarketPlace is Ownable {
 
         orders[_tokenId].status = OrderStatus.FINISHED;
         NFT(nftAddress).transferNFT(address(this), msg.sender, _tokenId);
-        // TODO add event
+        emit Cancel(_tokenId);
     }
 
     function listItemOnAuction(uint256 _tokenId, uint256 _minPrice) public {
@@ -87,7 +87,7 @@ contract MarketPlace is Ownable {
 
         orders[_tokenId] = Order(OrderType.AUCTION, OrderStatus.PENDING, _minPrice, msg.sender, block.timestamp);
         NFT(nftAddress).transferNFT(msg.sender, address(this), _tokenId);
-        // TODO add event
+        emit ListItemOnAuction(_tokenId, _minPrice);
     }
 
     function makeBid(uint256 _tokenId, uint256 _price) public onlyOrderByType(_tokenId, OrderType.AUCTION) {
@@ -111,7 +111,7 @@ contract MarketPlace is Ownable {
             Token(tokenAddress).transfer(lastBid.bidder, lastBid.amount);
         }
 
-        // TODO add event
+        emit MakeBid(_tokenId, _price);
     }
 
     function finishAuction(uint256 _tokenId) public onlyOrderByType(_tokenId, OrderType.AUCTION) {
@@ -130,6 +130,14 @@ contract MarketPlace is Ownable {
             NFT(nftAddress).transferNFT(address(this), orders[_tokenId].owner, _tokenId);
             Token(tokenAddress).transfer(lastBid.bidder, lastBid.amount);
         }
-        // TODO add event
+        emit FinishAuction(_tokenId);
     }
+
+    event CreateItem(string _tokenURI, address indexed _owner);
+    event ListItem(uint256 _tokenId, uint256 _price);
+    event BuyItem(uint256 _tokenId);
+    event Cancel(uint256 _tokenId);
+    event ListItemOnAuction(uint256 _tokenId, uint256 _minPrice);
+    event MakeBid(uint256 _tokenId, uint256 _price);
+    event FinishAuction(uint256 _tokenId);
 }
