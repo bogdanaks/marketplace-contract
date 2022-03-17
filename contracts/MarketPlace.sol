@@ -49,8 +49,9 @@ contract MarketPlace is Ownable {
     }
 
     function createItem(string memory _tokenURI, address _owner) public returns (uint256 nftId) {
-        return NFT(nftAddress).createNFT(_owner, _tokenURI);
         emit CreateItem(_tokenURI, _owner);
+
+        return NFT(nftAddress).createNFT(_owner, _tokenURI);
     }
 
     function listItem(uint256 _tokenId, uint256 _price) public {
