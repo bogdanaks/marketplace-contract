@@ -74,8 +74,8 @@ contract MarketPlace is Ownable {
     }
 
     function cancel(uint256 _tokenId) public onlyOrderByType(_tokenId, OrderType.FIX_PRICE) {
-        // TODO check owner
         require(orders[_tokenId].createdAt != 0, "Not exist");
+        require(orders[_tokenId].owner == msg.sender, "Only owner");
         require(orders[_tokenId].status == OrderStatus.PENDING, "Bids already placed or order finished");
 
         orders[_tokenId].status = OrderStatus.FINISHED;
@@ -119,12 +119,11 @@ contract MarketPlace is Ownable {
         require(orders[_tokenId].createdAt != 0, "Not exist");
         require(orders[_tokenId].status != OrderStatus.FINISHED, "Already finished");
         require(orders[_tokenId].createdAt + 3 days < block.timestamp, "It hasn't been three days");
-        require(bids[_tokenId].length > 1, "Only if there are more than two bids");
 
         Bid memory lastBid = bids[_tokenId][bids[_tokenId].length - 1];
         orders[_tokenId].status = OrderStatus.FINISHED;
 
-        if (bids[_tokenId].length > 1) {
+        if (bids[_tokenId].length >= 2) {
             NFT(nftAddress).transferNFT(address(this), lastBid.bidder, _tokenId);
             Token(tokenAddress).transfer(orders[_tokenId].owner, lastBid.amount);
         } else {
