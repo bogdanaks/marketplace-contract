@@ -36,7 +36,7 @@ export default function (): void {
     expect(lastBid.amount).to.equal(parseEther("10"));
   });
 
-  it("Finish auction", async function (): Promise<void> {
+  it("Finish auction if > 1", async function (): Promise<void> {
     await this.marketPlace.createItem(
       "https://gateway.pinata.cloud/ipfs/QmSLKSvWrc9Ma3119LsRxA8Pcj9Sm2jcMn7QWnAxfpVBqe",
       this.owner.address
@@ -44,6 +44,17 @@ export default function (): void {
     await this.marketPlace.listItemOnAuction(1, parseEther("10"));
     await this.marketPlace.makeBid(1, parseEther("10"));
     await this.marketPlace.makeBid(1, parseEther("10.1"));
+    await ethers.provider.send("evm_increaseTime", [60 * 60 * 24 * 3 + 1]); // 3d 1s
+    await this.marketPlace.finishAuction(1);
+  });
+
+  it("Finish auction if < 1", async function (): Promise<void> {
+    await this.marketPlace.createItem(
+      "https://gateway.pinata.cloud/ipfs/QmSLKSvWrc9Ma3119LsRxA8Pcj9Sm2jcMn7QWnAxfpVBqe",
+      this.owner.address
+    );
+    await this.marketPlace.listItemOnAuction(1, parseEther("10"));
+    await this.marketPlace.makeBid(1, parseEther("10"));
     await ethers.provider.send("evm_increaseTime", [60 * 60 * 24 * 3 + 1]); // 3d 1s
     await this.marketPlace.finishAuction(1);
   });
