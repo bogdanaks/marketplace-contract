@@ -1,7 +1,7 @@
 import { ethers } from "hardhat";
 
-const NFT_ADDRESS = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
-const TOKEN_ADDRESS = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512";
+const NFT_ADDRESS = "0x61E487526792df2AD5b6D20d06059Dd0A13f74C2"; // rinkeby
+const TOKEN_ADDRESS = "0x3b89bd9fCE465dc976Ab3308fAbb57B8BaB4429D"; // rinkeby
 
 async function main() {
   const MarketPlaceContract = await ethers.getContractFactory("MarketPlace");
