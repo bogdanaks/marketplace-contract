@@ -1,11 +1,11 @@
 import { ethers } from "hardhat";
 
 async function main() {
-  const MarketPlaceContract = await ethers.getContractFactory("MarketPlace");
-  const marketPlace = await MarketPlaceContract.deploy();
+  const TokenContract = await ethers.getContractFactory("Token");
+  const token = await TokenContract.deploy();
   const [owner] = await ethers.getSigners();
 
-  console.log("Marketplace deployed to:", marketPlace.address);
+  console.log("Token deployed to:", token.address);
   console.log("Owner address is: ", owner.address);
 }
 
