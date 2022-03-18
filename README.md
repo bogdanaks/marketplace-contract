@@ -1,9 +1,13 @@
 # Advanced Sample Hardhat Project
 
 NFT_ADDRESS = "0x61E487526792df2AD5b6D20d06059Dd0A13f74C2"; // rinkeby
+
 TOKEN_ADDRESS = "0x3b89bd9fCE465dc976Ab3308fAbb57B8BaB4429D"; // rinkeby
+
 MarketPlace deployed to Rinkeby: 0xB564831E47D487751819C1E8002D6453B9eFB37f
+
 https://rinkeby.etherscan.io/address/0xB564831E47D487751819C1E8002D6453B9eFB37f#code
+
 Owner address is: 0x0d637904305685c537494b96E74a0C0a4D1C647f
 
 Try running some of the following tasks:
