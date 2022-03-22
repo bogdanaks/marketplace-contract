@@ -5,6 +5,8 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 
 import "./NFT.sol";
 import "./Token.sol";
+import "./IToken.sol";
+import "./INFT.sol";
 
 contract MarketPlace is Ownable {
     enum OrderStatus {
@@ -26,20 +28,20 @@ contract MarketPlace is Ownable {
     struct Order {
         OrderType orderType;
         OrderStatus status;
-        uint256 price;
         address owner;
+        uint256 price;
         uint256 createdAt;
     }
 
     mapping(uint256 => Order) public orders;
     mapping(uint256 => Bid[]) public bids;
 
-    address public nftAddress;
-    address public tokenAddress;
+    INFT public nftAddress;
+    IToken public tokenAddress;
 
     constructor(address _nftAddress, address _tokenAddress) public {
-        nftAddress = _nftAddress;
-        tokenAddress = _tokenAddress;
+        nftAddress = INFT(_nftAddress);
+        tokenAddress = IToken(_tokenAddress);
     }
 
     modifier onlyOrderByType(uint256 _tokenId, OrderType _orderType) {
@@ -50,15 +52,15 @@ contract MarketPlace is Ownable {
     function createItem(string memory _tokenURI, address _owner) public returns (uint256 nftId) {
         emit CreateItem(_tokenURI, _owner);
 
-        return NFT(nftAddress).createNFT(_owner, _tokenURI);
+        return nftAddress.createNFT(_owner, _tokenURI);
     }
 
     function listItem(uint256 _tokenId, uint256 _price) public {
         require(orders[_tokenId].createdAt == 0, "Already exist");
         require(_price > 0, "Must be greater than zero");
 
-        orders[_tokenId] = Order(OrderType.FIX_PRICE, OrderStatus.PENDING, _price, msg.sender, block.timestamp);
-        NFT(nftAddress).transferNFT(msg.sender, address(this), _tokenId);
+        orders[_tokenId] = Order(OrderType.FIX_PRICE, OrderStatus.PENDING, msg.sender, _price, block.timestamp);
+        nftAddress.transferNFT(msg.sender, address(this), _tokenId);
         emit ListItem(_tokenId, _price);
     }
 
@@ -67,8 +69,8 @@ contract MarketPlace is Ownable {
         require(msg.value >= orders[_tokenId].price, "Must be greater than price");
 
         orders[_tokenId].status = OrderStatus.FINISHED;
-        Token(tokenAddress).transferFrom(msg.sender, address(this), orders[_tokenId].price);
-        NFT(nftAddress).transferNFT(address(this), msg.sender, _tokenId);
+        tokenAddress.transferFrom(msg.sender, address(this), orders[_tokenId].price);
+        nftAddress.transferNFT(address(this), msg.sender, _tokenId);
         emit BuyItem(_tokenId);
     }
 
@@ -78,15 +80,15 @@ contract MarketPlace is Ownable {
         require(orders[_tokenId].status == OrderStatus.PENDING, "Bids already placed or order finished");
 
         orders[_tokenId].status = OrderStatus.FINISHED;
-        NFT(nftAddress).transferNFT(address(this), msg.sender, _tokenId);
+        nftAddress.transferNFT(address(this), msg.sender, _tokenId);
         emit Cancel(_tokenId);
     }
 
     function listItemOnAuction(uint256 _tokenId, uint256 _minPrice) public {
         require(orders[_tokenId].createdAt == 0, "Already exist");
 
-        orders[_tokenId] = Order(OrderType.AUCTION, OrderStatus.PENDING, _minPrice, msg.sender, block.timestamp);
-        NFT(nftAddress).transferNFT(msg.sender, address(this), _tokenId);
+        orders[_tokenId] = Order(OrderType.AUCTION, OrderStatus.PENDING, msg.sender, _minPrice, block.timestamp);
+        nftAddress.transferNFT(msg.sender, address(this), _tokenId);
         emit ListItemOnAuction(_tokenId, _minPrice);
     }
 
@@ -105,10 +107,10 @@ contract MarketPlace is Ownable {
 
         orders[_tokenId].status = OrderStatus.RUNNING;
         bids[_tokenId].push(Bid(_price, msg.sender, block.timestamp));
-        Token(tokenAddress).transferFrom(msg.sender, address(this), _price);
+        tokenAddress.transferFrom(msg.sender, address(this), _price);
 
         if (!isFirstBid) {
-            Token(tokenAddress).transfer(lastBid.bidder, lastBid.amount);
+            tokenAddress.transfer(lastBid.bidder, lastBid.amount);
         }
 
         emit MakeBid(_tokenId, _price);
@@ -123,11 +125,11 @@ contract MarketPlace is Ownable {
         orders[_tokenId].status = OrderStatus.FINISHED;
 
         if (bids[_tokenId].length >= 2) {
-            NFT(nftAddress).transferNFT(address(this), lastBid.bidder, _tokenId);
-            Token(tokenAddress).transfer(orders[_tokenId].owner, lastBid.amount);
+            nftAddress.transferNFT(address(this), lastBid.bidder, _tokenId);
+            tokenAddress.transfer(orders[_tokenId].owner, lastBid.amount);
         } else {
-            NFT(nftAddress).transferNFT(address(this), orders[_tokenId].owner, _tokenId);
-            Token(tokenAddress).transfer(lastBid.bidder, lastBid.amount);
+            nftAddress.transferNFT(address(this), orders[_tokenId].owner, _tokenId);
+            tokenAddress.transfer(lastBid.bidder, lastBid.amount);
         }
         emit FinishAuction(_tokenId);
     }
