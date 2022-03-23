@@ -59,7 +59,11 @@ contract MarketPlace is Ownable {
         require(orders[_tokenId].createdAt == 0, "Already exist");
         require(_price > 0, "Must be greater than zero");
 
-        orders[_tokenId] = Order(OrderType.FIX_PRICE, OrderStatus.PENDING, msg.sender, _price, block.timestamp);
+        orders[_tokenId].orderType = OrderType.FIX_PRICE;
+        orders[_tokenId].status = OrderStatus.PENDING;
+        orders[_tokenId].owner = msg.sender;
+        orders[_tokenId].price = _price;
+        orders[_tokenId].createdAt = block.timestamp;
         nftAddress.transferNFT(msg.sender, address(this), _tokenId);
         emit ListItem(_tokenId, _price);
     }
@@ -87,7 +91,11 @@ contract MarketPlace is Ownable {
     function listItemOnAuction(uint256 _tokenId, uint256 _minPrice) public {
         require(orders[_tokenId].createdAt == 0, "Already exist");
 
-        orders[_tokenId] = Order(OrderType.AUCTION, OrderStatus.PENDING, msg.sender, _minPrice, block.timestamp);
+        orders[_tokenId].orderType = OrderType.AUCTION;
+        orders[_tokenId].status = OrderStatus.PENDING;
+        orders[_tokenId].owner = msg.sender;
+        orders[_tokenId].price = _minPrice;
+        orders[_tokenId].createdAt = block.timestamp;
         nftAddress.transferNFT(msg.sender, address(this), _tokenId);
         emit ListItemOnAuction(_tokenId, _minPrice);
     }
